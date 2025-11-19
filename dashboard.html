@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Vulnerable Web</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="global_container">
+        <h1>Welcome, <span id="usernameDisplay">User</span></h1>
+        
+        <div id="search_ctr">
+            <h3>Search Users</h3>
+            <input type="text" id="searchInput" placeholder="Search by username...">
+            <button id="searchBtn">Search</button>
+            <!-- Contenedor vulnerable a XSS -->
+            <div id="searchFeedback" style="margin-top: 10px; color: #666;"></div>
+            <div id="searchResults"></div>
+            <div id="errorDisplay" class="error-message"></div>
+        </div>
+
+        <div id="items_ctr">
+            <h3>Items List</h3>
+            <div id="itemsList">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('usernameDisplay').innerText = user.user || user.username;
+        }
+
+        document.getElementById('searchBtn').onclick = function() {
+            const query = document.getElementById('searchInput').value;
+            
+            // VULNERABILIDAD: XSS Reflejado
+            // Inserción directa en el DOM sin sanitización
+            document.getElementById('searchFeedback').innerHTML = 'Resultados para: ' + query;
+            document.getElementById('errorDisplay').style.display = 'none';
+
+            fetch(`http://localhost:3000/search?q=${query}`)
+                .then(res => {
+                    if (!res.ok) {
+                        return res.json().then(err => { throw err; });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    const resultsDiv = document.getElementById('searchResults');
+                    resultsDiv.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(u => {
+                            const p = document.createElement('p');
+                            // Mostrar propiedad 'user'
+                            p.innerText = `ID: ${u.id}, User: ${u.user}`;
+                            resultsDiv.appendChild(p);
+                        });
+                    } else {
+                        resultsDiv.innerText = 'No results found.';
+                    }
+                })
+                .catch(err => {
+                    // Mostrar Error de BD (Ayuda para SQLi basado en errores)
+                    const errorDiv = document.getElementById('errorDisplay');
+                    errorDiv.style.display = 'block';
+                    errorDiv.innerText = 'Error: ' + (err.error || err.message || JSON.stringify(err));
+                });
+        };
+
+        // Cargar Items
+        fetch('http://localhost:3000/items')
+            .then(res => res.json())
+            .then(data => {
+                const listDiv = document.getElementById('itemsList');
+                data.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    div.innerHTML = `<b>${item.name}</b>: ${item.description}`;
+                    listDiv.appendChild(div);
+                });
+            });
+    </script>
+</body>
+</html>
