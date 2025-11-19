@@ -2,25 +2,6 @@
 
 Esta es una aplicacion web intencionalmente vulnerable diseñada para demostrar y practicar tecnicas de pentesting como SQL Injection y XSS.
 
-## Instrucciones de Uso
-
-1.  **Instalar dependencias:**
-    ```bash
-    npm install
-    ```
-
-2.  **Iniciar el servidor:**
-    ```bash
-    node server.js
-    ```
-
-3.  **Configurar la Base de Datos:**
-    Abre tu navegador y visita: `http://localhost:3000/setup`
-    Esto creara las tablas necesarias y el usuario de prueba.
-
-4.  **Acceder a la aplicacion:**
-    Visita: `http://localhost:3000/`
-
 ## Credenciales de Prueba
 
 *   **Usuario:** Shiroh
